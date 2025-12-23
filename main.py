@@ -10,6 +10,8 @@ import os
 import shutil
 import requests
 import uuid
+import pdfplumber
+from docx import Document
 
 
 
@@ -51,6 +53,21 @@ def protected_route(user=Depends(get_current_user)):
         "user": user
     }
 
+@app.post("/extract-text")
+def extract_text_api(data: dict):
+    file_path = data.get("file_path")
+
+    if not file_path or not os.path.exists(file_path):
+        raise HTTPException(status_code=400, detail="Invalid file path")
+
+    text = extract_text(file_path)
+
+    return {
+        "file_path": file_path,
+        "text": text
+    }
+
+
 @app.post("/upload")
 def upload_assignment(
     file: UploadFile = File(...),
@@ -65,11 +82,15 @@ def upload_assignment(
 
     job_id = str(uuid.uuid4())
 
+    # text = extract_text(file_path)
+    text = ""
+
     payload = {
-        "job_id": job_id,
-        "file_path": file_path,
-        "student_email": user["sub"]
-    }
+    "job_id": job_id,
+    "file_path": file_path,
+    "student_email": user["sub"]
+}
+
 
     try:
        requests.post(
