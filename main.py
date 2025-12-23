@@ -3,6 +3,8 @@ from schemas import RegisterRequest, LoginRequest
 from security import hash_password, verify_password
 from users import users_db
 from jwt_utils import create_access_token
+from dependencies import get_current_user
+from fastapi import Depends
 
 
 app = FastAPI()
@@ -35,4 +37,12 @@ def login(data: LoginRequest):
                 return {"access_token": token, "token_type": "bearer"}
 
     raise HTTPException(status_code=401, detail="Invalid credentials")
+
+@app.get("/protected")
+def protected_route(user=Depends(get_current_user)):
+    return {
+        "message": "You are authorized",
+        "user": user
+    }
+
 
